@@ -1,0 +1,244 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum TicketStatus {
+  NEW
+  ASSIGNED
+  IN_PROGRESS
+  PENDING_USER
+  PENDING_VENDOR
+  PENDING_CHANGE
+  ESCALATED
+  RESOLVED
+  CLOSED
+  REOPENED
+}
+
+enum Priority {
+  P1
+  P2
+  P3
+  P4
+}
+
+enum SupportLevel {
+  L1
+  L2
+  L3
+}
+
+enum ActionStatus {
+  OPEN
+  IN_PROGRESS
+  BLOCKED
+  COMPLETE
+}
+
+model User {
+  id        String              @id @default(cuid())
+  name      String
+  email     String              @unique
+  role      String
+  level     SupportLevel?
+  teamId    String?
+  team      Team?               @relation(fields: [teamId], references: [id])
+  tickets   Ticket[]
+  actions   OperationalAction[]
+  createdAt DateTime            @default(now())
+}
+
+model Team {
+  id      String       @id @default(cuid())
+  name    String
+  level   SupportLevel
+  users   User[]
+  tickets Ticket[]
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  criticality String
+  tickets     Ticket[]
+}
+
+model Ticket {
+  id               String              @id @default(cuid())
+  ticketNo         String              @unique
+  title            String
+  description      String
+  type             String
+  category         String
+  subcategory      String
+  application      String
+  customer         String
+  priority         Priority
+  severity         String
+  impact           String
+  urgency          String
+  status           TicketStatus
+  level            SupportLevel
+  teamId           String?
+  team             Team?               @relation(fields: [teamId], references: [id])
+  assigneeId       String?
+  assignee         User?               @relation(fields: [assigneeId], references: [id])
+  serviceId        String?
+  service          Service?            @relation(fields: [serviceId], references: [id])
+  createdAt        DateTime            @default(now())
+  firstResponseAt  DateTime?
+  updatedAt        DateTime            @updatedAt
+  resolvedAt       DateTime?
+  slaTargetMins    Int
+  slaBreached      Boolean             @default(false)
+  escalationStatus String              @default("Not escalated")
+  rootCause        String?
+  resolutionNotes  String?
+  comments         TicketComment[]
+  history          TicketHistory[]
+  actions          OperationalAction[]
+  escalations      Escalation[]
+}
+
+model TicketComment {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  author    String
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model TicketHistory {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  actor     String
+  field     String
+  fromValue String?
+  toValue   String?
+  createdAt DateTime @default(now())
+}
+
+model Escalation {
+  id           String    @id @default(cuid())
+  escalationNo String    @unique
+  ticketId     String
+  ticket       Ticket    @relation(fields: [ticketId], references: [id])
+  level        String
+  reason       String
+  owner        String
+  status       String
+  nextUpdateAt DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model MajorIncident {
+  id               String   @id @default(cuid())
+  incidentNo       String   @unique
+  title            String
+  priority         Priority
+  status           String
+  commander        String
+  impact           String
+  affectedServices String
+  timeline         String
+  workaround       String
+  pirStatus        String
+  createdAt        DateTime @default(now())
+}
+
+model Problem {
+  id                String    @id @default(cuid())
+  problemNo         String    @unique
+  title             String
+  rootCauseCategory String
+  rootCause         String
+  workaround        String
+  correctiveAction  String
+  owner             String
+  targetDate        DateTime?
+  status            String
+  impact            String
+  createdAt         DateTime  @default(now())
+}
+
+model Change {
+  id                   String   @id @default(cuid())
+  changeNo             String   @unique
+  title                String
+  application          String
+  owner                String
+  windowStart          DateTime
+  windowEnd            DateTime
+  risk                 String
+  approvalStatus       String
+  implementationStatus String
+  rollbackPlan         String
+  createdAt            DateTime @default(now())
+}
+
+model OperationalAction {
+  id             String       @id @default(cuid())
+  actionNo       String       @unique
+  source         String
+  description    String
+  ownerId        String?
+  owner          User?        @relation(fields: [ownerId], references: [id])
+  priority       Priority
+  dueDate        DateTime
+  status         ActionStatus
+  completionDate DateTime?
+  evidence       String?
+  createdAt      DateTime     @default(now())
+  ticketId       String?
+  ticket         Ticket?      @relation(fields: [ticketId], references: [id])
+}
+
+model BCPDRExercise {
+  id            String    @id @default(cuid())
+  name          String
+  exerciseType  String
+  plannedDate   DateTime?
+  completedDate DateTime?
+  status        String
+  owner         String
+  evidence      String?
+  outcome       String?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  severity  String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actor     String
+  action    String
+  entity    String
+  entityId  String
+  details   String
+  createdAt DateTime @default(now())
+}
+
+model DataImport {
+  id        String   @id @default(cuid())
+  fileName  String
+  source    String
+  status    String
+  totalRows Int
+  validRows Int
+  errorRows Int
+  errors    String?
+  createdAt DateTime @default(now())
+}

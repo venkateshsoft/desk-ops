@@ -1,0 +1,2 @@
+ticketNo,title,description,type,category,subcategory,application,customer,priority,severity,impact,urgency,status,level,team,assignee,createdAt,slaTargetMins
+INC-EXAMPLE,Example access issue,Example fictional row,Incident,Access,Password reset,Identity & Access,Finance,P3,Medium,Department,Normal,NEW,L1,L1 Service Desk,Aarav Mehta,2026-11-17T09:00:00Z,1440
