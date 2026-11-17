@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import Dashboard from "@/components/dashboard";
 import ModuleLauncher from "@/components/module-launcher";
+import { demoDashboard } from "@/lib/demo-data";
 
 export default async function Home() {
+  if (process.env.VERCEL) return <><ModuleLauncher /><Dashboard data={demoDashboard} /></>;
   const [total, open, resolved, pending, breached, risk, critical, tickets, teamStats] = await Promise.all([
     prisma.ticket.count(),
     prisma.ticket.count({ where: { status: { in: ["NEW", "ASSIGNED", "IN_PROGRESS", "PENDING_USER", "PENDING_VENDOR", "PENDING_CHANGE", "ESCALATED", "REOPENED"] } } }),

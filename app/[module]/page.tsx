@@ -2,10 +2,12 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { moduleMeta } from "@/lib/modules";
 import ModuleView from "@/components/module-view";
+import { demoData } from "@/lib/demo-data";
 
 export default async function ModulePage({ params }: { params: Promise<{ module: string }> }) {
   const { module } = await params;
   if (!moduleMeta[module]) notFound();
+  if (process.env.VERCEL) return <ModuleView module={module} meta={moduleMeta[module]} data={demoData} />;
   const [tickets, teams, users, escalations, incidents, problems, changes, actions, services, audits] = await Promise.all([
     prisma.ticket.findMany({ orderBy: { updatedAt: "desc" }, take: 80, include: { team: true, assignee: true } }),
     prisma.team.findMany({ include: { _count: { select: { tickets: true } } } }),

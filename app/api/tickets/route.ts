@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 const schema = z.object({ title: z.string().min(3), priority: z.enum(["P1", "P2", "P3", "P4"]).default("P3") });
 export async function POST(request: Request) {
+  if (process.env.VERCEL) return NextResponse.json({ error: "Demo deployment is read-only. Configure hosted PostgreSQL for persistent cloud mutations." }, { status: 503 });
   const parsed = schema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ error: "Title must be at least 3 characters." }, { status: 400 });
   const team = await prisma.team.findFirst({ where: { level: "L1" } });

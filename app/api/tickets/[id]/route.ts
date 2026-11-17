@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 const schema = z.object({ status: z.enum(["NEW","ASSIGNED","IN_PROGRESS","PENDING_USER","PENDING_VENDOR","PENDING_CHANGE","ESCALATED","RESOLVED","CLOSED","REOPENED"]).optional(), assigneeId: z.string().nullable().optional(), teamId: z.string().nullable().optional() });
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (process.env.VERCEL) return NextResponse.json({ error: "Demo deployment is read-only. Configure hosted PostgreSQL for persistent cloud mutations." }, { status: 503 });
   const { id } = await params; const body = schema.safeParse(await request.json());
   if (!body.success) return NextResponse.json({ error: "Invalid ticket update" }, { status: 400 });
   const before = await prisma.ticket.findUnique({ where: { id } }); if (!before) return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
