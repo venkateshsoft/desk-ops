@@ -4,7 +4,9 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  // Demo deployment uses the bundled SQLite seed database. Replace with a hosted
+  // PostgreSQL URL for production persistence.
+  url      = "file:./dev.db"
 }
 
 enum TicketStatus {
